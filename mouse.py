@@ -17,7 +17,7 @@ def draw_line_dashed(surface, color, start_pos, end_pos, width = 1, dash_length 
 
     dash_knots = np.array([np.linspace(start_pos[i], end_pos[i], dash_amount) for i in range(2)]).transpose()
 
-    return [pg.draw.line(surface, color, tuple(dash_knots[n]), tuple(dash_knots[n+1]), width)
+    return [pygame.draw.line(surface, color, tuple(dash_knots[n]), tuple(dash_knots[n+1]), width)
             for n in range(int(exclude_corners), dash_amount - int(exclude_corners), 2)]
 
 
@@ -34,7 +34,7 @@ class mouse(object):
         self.cursor_updated = False
     
     def to_node(self, node_id, mass = 0):
-        return node(node_id, self.x, self.y, mass = 0)
+        return node(node_id, self.x, self.y, mass)
 
     def __list__(self):
         return [self.x, self.y]
@@ -48,8 +48,6 @@ class mouse(object):
     
     
     def snap_line(self, truss):
-
-        
 
         #closest_node = min(truss.nodes, key = lambda node : np.linalg.norm(node.pos - self.pos()))
         n = truss.nodes[-1].pos
