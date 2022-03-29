@@ -49,19 +49,25 @@ class mouse(object):
     
     def snap_line(self, truss):
 
-        members_connected = [m for m in truss.members if m.node1 == truss.nodes[-1] or m.node2 == truss.nodes[-1]]
+        
 
-        if len(members_connected) == 0:
-            return
-
+        #closest_node = min(truss.nodes, key = lambda node : np.linalg.norm(node.pos - self.pos()))
         n = truss.nodes[-1].pos
 
-        lines = [[ np.array([1, 0]), np.array([0, 0])],
-                 [ np.array([0, 1]), np.array([0, 0])]]
 
+        lines = [[ np.array([1, 0]), n],
+                 [ np.array([0, 1]), n]]
+
+        members_connected = [m for m in truss.members if m.node1 == truss.nodes[-1] or m.node2 == truss.nodes[-1]]
+        if len(members_connected) == 0:
+            return
         for m in members_connected:
             lines.append([m.d, n])
             lines.append([utils.perpendicular(m.d), n])
+        
+        members_not_connected = [m for m in truss.members if m.node1 != truss.nodes[-1] and m.node2 != truss.nodes[-1]]
+        for m in members_not_connected:
+            lines.append([m.d, n])
 
         f = lambda l : utils.line_to_point(l[0], l[1], self.pos())
 
@@ -93,30 +99,30 @@ class mouse(object):
     
         members_not_connected = [m for m in truss.members if m.node1 != truss.nodes[-1] and m.node2 != truss.nodes[-1]]
         
-
         if len(members_not_connected) == 0:
             return
 
         lines = []
 
         for m in members_not_connected:
-            print(m.node1.id, m.node2.id)
             lines.append([m.d, m.node1.pos])
-            #lines.append([utils.perpendicular(m.d), m.node1.pos])
-            #lines.append([utils.perpendicular(m.d), m.node2.pos])
-
+            m.display(truss.surface, (255,0,0))
+            lines.append([utils.perpendicular(m.d), m.node1.pos])
+            lines.append([utils.perpendicular(m.d), m.node2.pos])
+                
 
         g = lambda l : utils.line_to_point(l[0], l[1], self.pos())
         closest_line = min(lines, key = g)
 
-        print(abs(g(closest_line)))
-
-        if g(closest_line) < 50:
+        if g(closest_line) < 20:
 
             d = utils.normalise(closest_line[0])
             n = closest_line[1]
         
             pos = n + d * (self.pos() - n).dot(d)
+
+
+
             self.x = pos[0]
             self.y = pos[1] 
             self.cursor_updated = True

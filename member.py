@@ -21,5 +21,5 @@ class member(object):
 
 
 
-    def display(self, disp):
-        pygame.draw.line(disp, (0, 0, 0), self.node1.pos, self.node2.pos, 5)
+    def display(self, disp, colour = (0,0,0)):
+        pygame.draw.line(disp, colour, self.node1.pos, self.node2.pos, 5)

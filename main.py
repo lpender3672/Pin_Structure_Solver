@@ -19,10 +19,12 @@ class runtime(object):
 
         self.truss =  truss()
 
-    def draw_node_to_cursor(self, cursor):
+    def draw_closest_node_to_cursor(self, cursor):
         self.disp.fill((255,255,255))
         self.disp.blit(self.truss.surface, (0,0))
-        pygame.draw.line(self.disp, (0, 0, 0), self.truss.nodes[-1].pos, cursor.pos(), 5)
+        #node = min(self.truss.nodes, key = lambda node : np.linalg.norm(node.pos - cursor.pos()))
+        node = self.truss.nodes[-1]
+        pygame.draw.line(self.disp, (0, 0, 0), node.pos, cursor.pos(), 5)
         pygame.display.flip()
 
     def run(self):
@@ -51,14 +53,14 @@ class runtime(object):
 
                         cursor.snap_line(self.truss)
                         cursor.snap_point(self.truss)
-                        self.draw_node_to_cursor(cursor)
+                        self.draw_closest_node_to_cursor(cursor)
                         
                             
                     if e.key == pygame.K_SPACE:
                         self.drawing = True
 
                         if len(self.truss.nodes) > 0:
-                            self.draw_node_to_cursor(cursor)
+                            self.draw_closest_node_to_cursor(cursor)
                         
                 elif e.type == pygame.KEYUP:
                     if e.key == pygame.K_LSHIFT:
@@ -92,7 +94,7 @@ class runtime(object):
                         cursor.snap_point(self.truss)
 
                         # draw line from previous node to mouse position
-                        self.draw_node_to_cursor(cursor)
+                        self.draw_closest_node_to_cursor(cursor)
 
                     else:
                         self.disp.fill((255,255,255))
