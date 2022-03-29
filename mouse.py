@@ -3,7 +3,7 @@ import pygame
 import numpy as np
 
 from node import node
-from utils import utils
+from utils import utils,line
 
 def draw_line_dashed(surface, color, start_pos, end_pos, width = 1, dash_length = 10, exclude_corners = True):
 
@@ -54,25 +54,24 @@ class mouse(object):
         #closest_node = min(truss.nodes, key = lambda node : np.linalg.norm(node.pos - self.pos()))
         n = truss.nodes[-1].pos
 
-
-        lines = [[ np.array([1, 0]), n],
-                 [ np.array([0, 1]), n]]
+        lines = [ line(np.array([1, 0]), n),
+                  line(np.array([0, 1]), n)]
 
         members_connected = [m for m in truss.members if m.node1 == truss.nodes[-1] or m.node2 == truss.nodes[-1]]
         if len(members_connected) == 0:
             return
         for m in members_connected:
-            lines.append([m.d, n])
-            lines.append([utils.perpendicular(m.d), n])
+            lines.append(line(m.d, n)) # line along another connected member
+            lines.append(line(utils.perpendicular(m.d), n)) # line perpendicular to a connected member
         
         members_not_connected = [m for m in truss.members if m.node1 != truss.nodes[-1] and m.node2 != truss.nodes[-1]]
-        for m in members_not_connected:
-            lines.append([m.d, n])
+        for m in members_not_connected[:-2]:
+            lines.append(line(m.d, n)) # line parallel to not connected members
 
-        f = lambda l : utils.line_to_point(l[0], l[1], self.pos())
+        f = lambda l : l.distance_to_point(self.pos())
 
         closest_line = min(lines, key = f)
-        d = utils.normalise(closest_line[0])
+        d = utils.normalise(closest_line.d)
         
         pos = n + d * (self.pos() - n).dot(d)
         self.x = pos[0]
@@ -96,32 +95,33 @@ class mouse(object):
             self.cursor_updated = True
             return
         
-    
-        members_not_connected = [m for m in truss.members if m.node1 != truss.nodes[-1] and m.node2 != truss.nodes[-1]]
-        
-        if len(members_not_connected) == 0:
-            return
 
         lines = []
 
-        for m in members_not_connected:
-            lines.append([m.d, m.node1.pos])
-            m.display(truss.surface, (255,0,0))
-            lines.append([utils.perpendicular(m.d), m.node1.pos])
-            lines.append([utils.perpendicular(m.d), m.node2.pos])
-                
+        nodes_not_connected = truss.nodes[:-1]
+        
+        for n in nodes_not_connected:
 
-        g = lambda l : utils.line_to_point(l[0], l[1], self.pos())
-        closest_line = min(lines, key = g)
+            members_connected = [m for m in truss.members if m.node1 == n or m.node2 == n]
+            for m in members_connected:
+                lines.append(line(m.d, n.pos))
+                lines.append(line(utils.perpendicular(m.d), n.pos))
+    
+            lines.append(line(np.array([1, 0]), n.pos))
+            lines.append(line(np.array([0, 1]), n.pos))
+
+        if len(lines) == 0:
+            return
+
+        g = lambda l : l.distance_to_point(self.pos())
+        closest_line = min(lines, key = g) # better if its sorted
 
         if g(closest_line) < 20:
 
-            d = utils.normalise(closest_line[0])
-            n = closest_line[1]
+            d = utils.normalise(closest_line.d)
+            n = closest_line.p
         
             pos = n + d * (self.pos() - n).dot(d)
-
-
 
             self.x = pos[0]
             self.y = pos[1] 

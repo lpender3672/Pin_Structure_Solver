@@ -4,11 +4,11 @@ import numpy as np
 
 class truss(object): # made from nodes and members
 
-    def __init__(self):
+    def __init__(self, res):
         self.nodes = []
         self.members = []
 
-        self.surface = pygame.Surface((800, 400))
+        self.surface = pygame.Surface(res)
         self.surface.fill((255,255,255))
 
 

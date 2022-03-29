@@ -17,7 +17,7 @@ class runtime(object):
         self.drawing = False
 
 
-        self.truss =  truss()
+        self.truss =  truss(res)
 
     def draw_closest_node_to_cursor(self, cursor):
         self.disp.fill((255,255,255))
@@ -84,14 +84,16 @@ class runtime(object):
 
                     # draw line from previous node to mouse position
 
-                    if self.straight:
-                        cursor.snap_line(self.truss)
+                    
                         
                     
 
                     if self.drawing and len(self.truss.nodes) > 0:
 
                         cursor.snap_point(self.truss)
+
+                        if self.straight:
+                            cursor.snap_line(self.truss)
 
                         # draw line from previous node to mouse position
                         self.draw_closest_node_to_cursor(cursor)
@@ -136,7 +138,7 @@ def main():
 
     pygame.init()
 
-    app = runtime((800, 400))
+    app = runtime((2000, 1000))
     app.run()
 
 if __name__ == '__main__':
