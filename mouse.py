@@ -23,7 +23,9 @@ def draw_line_dashed(surface, color, start_pos, end_pos, width = 1, dash_length 
 
 class mouse(object):
     
-    def __init__(self, pos = None):
+    def __init__(self, disp, pos = None):
+
+        self.disp = disp
 
         if pos == None:
             self.x, self.y = pygame.mouse.get_pos()
@@ -120,6 +122,8 @@ class mouse(object):
             n = closest_line.p
         
             pos = n + d * (self.pos() - n).dot(d)
+
+            draw_line_dashed(self.disp, (0, 0, 0), n, pos, width = 2, dash_length = 10)
 
             self.x = pos[0]
             self.y = pos[1] 

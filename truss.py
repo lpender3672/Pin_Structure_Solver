@@ -31,3 +31,14 @@ class truss(object): # made from nodes and members
             member.display(self.surface)
         for node in self.nodes:
             node.display(self.surface)
+    
+    def display(self, display, clear = False, update = True):
+        
+
+        if clear:
+            display.fill((255,255,255))
+            
+        display.blit(self.surface, (0,0))
+
+        if update:
+            pygame.display.flip()

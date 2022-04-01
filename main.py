@@ -1,5 +1,6 @@
 import pygame
 import numpy as np
+from sympy import false
 
 from member import member
 from mouse import mouse
@@ -14,25 +15,25 @@ class runtime(object):
         self.crashed = False
 
         self.straight = False
-        self.drawing = False
+
+        self.drawing_truss = False
+        self.drawing_forces = False
+        self.drawing_fixtures = False
+
 
 
         self.truss =  truss(res)
 
-    def draw_closest_node_to_cursor(self, cursor):
-        self.disp.fill((255,255,255))
-        self.disp.blit(self.truss.surface, (0,0))
-        #node = min(self.truss.nodes, key = lambda node : np.linalg.norm(node.pos - cursor.pos()))
+    def draw_last_node_to_cursor(self, cursor):
         node = self.truss.nodes[-1]
         pygame.draw.line(self.disp, (0, 0, 0), node.pos, cursor.pos(), 5)
-        pygame.display.flip()
 
     def run(self):
 
         self.disp.fill((255, 255, 255))
         pygame.display.flip()
 
-        cursor = mouse()
+        cursor = mouse(self.disp)
 
         while not self.crashed:
 
@@ -47,36 +48,63 @@ class runtime(object):
                     break
     
                 elif e.type == pygame.KEYDOWN:
-                    if e.key == pygame.K_LSHIFT and self.drawing and len(self.truss.nodes) > 0:
+
+                    if e.key == pygame.K_ESCAPE:
+                        self.crashed = True
+                        break
+
+                    if e.key == pygame.K_LSHIFT and self.drawing_truss and len(self.truss.nodes) > 0:
                         self.straight = True
-                        self.straight_pos = pygame.mouse.get_pos()
+
+                        self.disp.fill((255, 255, 255))
 
                         cursor.snap_line(self.truss)
+                        self.truss.display(self.disp, clear=False, update=False)
                         cursor.snap_point(self.truss)
-                        self.draw_closest_node_to_cursor(cursor)
+
+                        self.draw_last_node_to_cursor(cursor)
+
+                        pygame.display.flip()
                         
                             
                     if e.key == pygame.K_SPACE:
-                        self.drawing = True
+                        self.drawing_truss = True
 
                         if len(self.truss.nodes) > 0:
-                            self.draw_closest_node_to_cursor(cursor)
+                            self.disp.fill((255, 255, 255))
+
+                            cursor.snap_point(self.truss)
+
+                            self.truss.display(self.disp, False)
+                            self.draw_last_node_to_cursor(cursor)
+                    
+                    if e.key == pygame.K_f:
+                        self.drawing_forces = True
+
+                    if e.key == pygame.K_LCTRL:
+                        self.drawing_fixtures = True
+
                         
                 elif e.type == pygame.KEYUP:
                     if e.key == pygame.K_LSHIFT:
                         self.straight = False
-
-                        self.disp.fill((255,255,255))
-                        self.disp.blit(self.truss.surface, (0,0))
-                        pygame.display.flip()
+                        self.truss.display(self.disp)
 
                     
                     if e.key == pygame.K_SPACE:
                         self.drawing = False
+                        self.truss.display(self.disp)
 
-                        self.disp.fill((255,255,255))
-                        self.disp.blit(self.truss.surface, (0,0))
-                        pygame.display.flip()
+                    
+                    if e.key == pygame.K_f:
+                        self.drawing_forces = False
+                        self.truss.display(self.disp)
+
+                    if e.key == pygame.K_LCTRL:
+                        self.drawing_fixtures = False
+                        self.truss.display(self.disp)
+
+                        
 
                 elif e.type == pygame.MOUSEMOTION:
 
@@ -86,28 +114,31 @@ class runtime(object):
 
                     
                         
-                    
+                    self.disp.fill((255, 255, 255))
 
-                    if self.drawing and len(self.truss.nodes) > 0:
+                    if self.drawing_truss and len(self.truss.nodes) > 0:
+                        
+                        if self.straight:
+                            cursor.snap_line(self.truss)
+                        
+                        self.truss.display(self.disp, clear=False, update=False)
 
                         cursor.snap_point(self.truss)
 
-                        if self.straight:
-                            cursor.snap_line(self.truss)
-
                         # draw line from previous node to mouse position
-                        self.draw_closest_node_to_cursor(cursor)
+                        self.draw_last_node_to_cursor(cursor)
+
+                        pygame.display.update()
 
                     else:
-                        self.disp.fill((255,255,255))
-                        self.disp.blit(self.truss.surface, (0,0))
-                        pygame.display.flip()
-     
+                        
+                        self.truss.display(self.disp, False)
 
+     
                     
                 elif e.type == pygame.MOUSEBUTTONDOWN:
 
-                    if e.button == 1 and self.drawing: # left click
+                    if e.button == 1 and self.drawing_truss: # left click
                         self.truss.add_node( cursor.to_node( len(self.truss.nodes) ))
                     
 
@@ -119,9 +150,7 @@ class runtime(object):
 
                             self.truss.add_member(mem)
 
-                            self.disp.fill((255,255,255))
-                            self.disp.blit(self.truss.surface, (0,0))
-                            pygame.display.flip()
+                            self.truss.display(self.disp)
 
                 
 
