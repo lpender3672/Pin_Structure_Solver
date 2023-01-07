@@ -20,6 +20,5 @@ class member(object):
         self.mass = self.length * mass_per_unit_length
 
 
-
     def display(self, disp, colour = (0,0,0)):
         pygame.draw.line(disp, colour, self.node1.pos, self.node2.pos, 5)

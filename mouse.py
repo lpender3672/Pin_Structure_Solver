@@ -2,6 +2,7 @@
 import pygame
 import numpy as np
 
+from member import member
 from node import node
 from utils import utils,line
 
@@ -34,6 +35,7 @@ class mouse(object):
             self.y = pos[1]
 
         self.cursor_updated = False
+        self.snapped_to_node = False
     
     def to_node(self, node_id, mass = 0):
         return node(node_id, self.x, self.y, mass)
@@ -52,14 +54,20 @@ class mouse(object):
     def snap_line(self, truss):
 
         #closest_node = min(truss.nodes, key = lambda node : np.linalg.norm(node.pos - self.pos()))
+        if len(truss.nodes) == 0:
+            return
+
         n = truss.nodes[-1].pos
 
-        lines = [ line(np.array([1, 0]), n),
-                  line(np.array([0, 1]), n)]
+        # lines at 30, 60, 90, 120, 150 degrees   
+        lines = [   line(np.array([1, 0]), n),
+                    line(np.array([0, 1]), n),
+                    line(np.array([np.cos(np.pi/6), np.sin(np.pi/6)]), n),
+                    line(np.array([np.cos(np.pi/3), np.sin(np.pi/3)]), n),
+                    line(np.array([np.cos(np.pi/2), np.sin(np.pi/2)]), n),
+                    line(np.array([np.cos(2*np.pi/3), np.sin(2*np.pi/3)]), n) ]
 
         members_connected = [m for m in truss.members if m.node1 == truss.nodes[-1] or m.node2 == truss.nodes[-1]]
-        if len(members_connected) == 0:
-            return
         for m in members_connected:
             lines.append(line(m.d, n)) # line along another connected member
             lines.append(line(utils.perpendicular(m.d), n)) # line perpendicular to a connected member
@@ -79,20 +87,21 @@ class mouse(object):
         self.cursor_updated = True
 
         # perpendicular to existing beams
-
+    
     def snap_point(self, truss):
 
         if len(truss.nodes) == 0:
             return
         
         f = lambda node : np.linalg.norm(node.pos - self.pos())
-
         closest_node = min(truss.nodes, key = f)
 
         if f(closest_node) < 10:  # snapped to node
             self.x = closest_node.x
             self.y = closest_node.y
+            # add member to truss
             self.cursor_updated = True
+            self.snapped_to_node = True
             return
         
 
@@ -128,6 +137,15 @@ class mouse(object):
             self.x = pos[0]
             self.y = pos[1] 
             self.cursor_updated = True
+        
+        previous_node = truss.nodes[-1]
+        members_connected = [m for m in truss.members if m.node1 == previous_node or m.node2 == previous_node]
+        # angle between each member and the mouse
+        angles = np.array([np.arccos((m.d.dot(self.pos() - previous_node.pos)) / (np.linalg.norm(m.d) * np.linalg.norm(self.pos() - previous_node.pos))) for m in members_connected])
+        #print(angles * 180 / np.pi)
+        # TO DO
+        # angle snaps to 30, 45, 60
+
 
 
 

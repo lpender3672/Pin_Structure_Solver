@@ -25,6 +25,8 @@ class runtime(object):
         self.truss =  truss(res)
 
     def draw_last_node_to_cursor(self, cursor):
+        if len(self.truss.nodes) == 0 or not self.drawing_truss:
+            return
         node = self.truss.nodes[-1]
         pygame.draw.line(self.disp, (0, 0, 0), node.pos, cursor.pos(), 5)
 
@@ -38,7 +40,6 @@ class runtime(object):
         while not self.crashed:
 
             events = pygame.event.get()
-
             
 
             for e in events:
@@ -53,7 +54,7 @@ class runtime(object):
                         self.crashed = True
                         break
 
-                    if e.key == pygame.K_LSHIFT and self.drawing_truss and len(self.truss.nodes) > 0:
+                    if e.key == pygame.K_LSHIFT and self.drawing_truss:
                         self.straight = True
 
                         self.disp.fill((255, 255, 255))
@@ -139,14 +140,20 @@ class runtime(object):
                 elif e.type == pygame.MOUSEBUTTONDOWN:
 
                     if e.button == 1 and self.drawing_truss: # left click
-                        self.truss.add_node( cursor.to_node( len(self.truss.nodes) ))
-                    
+                        new_node = cursor.to_node( len(self.truss.nodes) )
+                        if len(self.truss.nodes) > 0:
+                            old_node = self.truss.nodes[-1]
+
+                        for n in self.truss.nodes:
+                            if np.allclose(n.pos, new_node.pos):
+                                new_node = n
+                                break
+                        else:
+                            self.truss.add_node(new_node)
 
                         if len(self.truss.nodes) > 1:
 
-                            n1, n2 = self.truss.nodes[-1], self.truss.nodes[-2]
-
-                            mem = member(n1, n2, 1)
+                            mem = member(old_node, new_node, 1)
 
                             self.truss.add_member(mem)
 
