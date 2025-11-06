@@ -34,7 +34,6 @@ class truss(object): # made from nodes and members
     
     def display(self, display, clear = False, update = True):
         
-
         if clear:
             display.fill((255,255,255))
             

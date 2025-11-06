@@ -22,5 +22,29 @@ class utils:
         return pos / np.linalg.norm(pos)
 
     def perpendicular(dir):
-        perpdir = np.array([-dir[1], dir[0]])
-        return perpdir / np.linalg.norm(perpdir)
+        return np.array([-dir[1], dir[0]])
+    
+    def is_axis_aligned(v, tol=1e-6):
+        v = np.asarray(v, dtype=float)
+        norm = np.linalg.norm(v)
+        if norm < tol:
+            return False
+        
+        axes = np.eye(len(v))
+        dots = np.abs(axes @ v)
+        return np.any(np.abs(dots - norm) < tol)
+    
+    def line_intersection(line1, line2):
+        d1 = line1.d
+        p1 = line1.p
+        d2 = line2.d
+        p2 = line2.p
+
+        denom = d1[0] * d2[1] - d1[1] * d2[0]
+        if denom == 0:
+            return None  # Lines are parallel
+
+        t = ((p2[0] - p1[0]) * d2[1] - (p2[1] - p1[1]) * d2[0]) / denom
+
+        intersection_point = p1 + t * d1
+        return intersection_point

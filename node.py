@@ -17,6 +17,8 @@ class node(object):
 
         self.forces = []
 
+        self.selected = False
+
     def __list__(self):
         return self.pos
 
@@ -26,5 +28,7 @@ class node(object):
         if isinstance(__o, node):
             return self.id == __o.id
     
-    def display(self, display):
-        pygame.draw.circle(display, (0, 0, 0), (self.x, self.y), 5)
+    def display(self, display, colour = (0,0,0)):
+        if self.selected:
+            colour = (255, 0, 0)
+        pygame.draw.circle(display, colour, (self.x, self.y), 5)

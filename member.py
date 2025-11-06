@@ -1,5 +1,6 @@
 import pygame
 import numpy as np
+from utils import utils
 
 class member(object):
     def __init__(self, node1, node2, mass_per_unit_length = 0):
@@ -8,6 +9,7 @@ class member(object):
         self.node2 = node2
 
         self.d = node2.pos - node1.pos
+        self.d = utils.normalise(self.d)
         self.p = self.d.dot(self.node1.pos)
 
         self.x = (self.node1.x + self.node2.x) / 2
@@ -19,7 +21,10 @@ class member(object):
 
         self.mass = self.length * mass_per_unit_length
 
+        self.selected = False
 
 
     def display(self, disp, colour = (0,0,0)):
+        if self.selected:
+            colour = (255, 0, 0)
         pygame.draw.line(disp, colour, self.node1.pos, self.node2.pos, 5)
