@@ -221,14 +221,32 @@ class mouse(object):
             self.y = pos[1] 
             self.cursor_updated = True
         
-    def get_hover_entities(self, truss):
-        hovered_nodes = []
-        hovered_members = []
+    def get_hover_entities(self, truss): # iterator
         p = self.pos()
 
         for n in truss.nodes:
             if np.linalg.norm(n.pos - self.pos()) < self.SNAP_DISTANCE_THRESHOLD:
-                hovered_nodes.append(n)
+                yield n
+
+            for f in n.forces:
+                start = f.start_pos
+                end = start + pygame.Vector2(f.vector.tolist())
+                d = end - start
+                seg_len2 = d.dot(d)
+                if seg_len2 == 0:
+                    continue
+                
+                t = np.dot(p - start, d) / seg_len2
+                if 0 <= t <= 1:
+
+                    proj = start + t * d
+                    dist = np.linalg.norm(p - proj)
+                    if dist < self.SNAP_DISTANCE_THRESHOLD:
+                        yield f
+        
+            for c in n.constraints:
+                if np.linalg.norm(c.ground_point - self.pos()) < self.SNAP_DISTANCE_THRESHOLD:
+                    yield c
         
         for m in truss.members:
             p1 = m.node1.pos
@@ -244,6 +262,13 @@ class mouse(object):
                 proj = p1 + t * d
                 dist = np.linalg.norm(p - proj)
                 if dist < self.SNAP_DISTANCE_THRESHOLD:
-                    hovered_members.append(m)
+                    yield m
+
+    def get_nearest_node(self, truss):
+        if len(truss.nodes) == 0:
+            return None
         
-        return hovered_nodes + hovered_members
+        f = lambda node : np.linalg.norm(node.pos - self.pos())
+        closest_node = min(truss.nodes, key = f)
+        return closest_node
+    
