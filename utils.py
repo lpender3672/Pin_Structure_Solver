@@ -11,6 +11,9 @@ class line(object):
     def distance_to_point(self, p):
         perpd = np.array([-self.d[1], self.d[0]])
         return abs((p - self.p).dot(perpd))/np.linalg.norm(perpd)
+    
+    def length(self):
+        return np.linalg.norm(self.d)
 
 
 class utils:

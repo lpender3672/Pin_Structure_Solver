@@ -93,6 +93,17 @@ class truss(object): # made from nodes and members
         elif isinstance(entity, constraint):
             self.delete_constraint(entity)
 
+    def get_all_entities(self):
+        for n in self.nodes:
+            yield n
+        for m in self.members:
+            yield m
+        for nd in self.nodes:
+            for f in nd.forces:
+                yield f
+            for c in nd.constraints:
+                yield c
+
     def re_draw(self):
         for member in self.members:
             member.display(self.surface)

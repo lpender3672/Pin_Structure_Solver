@@ -23,7 +23,6 @@ class member(object):
 
         self.selected = False
 
-
     def display(self, disp, colour = (0,0,0)):
         if self.selected:
             colour = (255, 0, 0)

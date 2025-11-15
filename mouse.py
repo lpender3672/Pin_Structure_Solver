@@ -2,6 +2,7 @@
 import pygame
 import numpy as np
 
+from member import member
 from node import node
 from utils import utils,line
 
@@ -39,6 +40,7 @@ class mouse(object):
             self.y = pos[1]
 
         self.cursor_updated = False
+        self.snapped_to_node = False
     
     def to_node(self, node_id, mass = 0):
         return node(node_id, self.x, self.y, mass)
@@ -62,8 +64,26 @@ class mouse(object):
 
         n = draw_from_node.pos
 
-        lines = [ line(np.array([1, 0]), n),
-                  line(np.array([0, 1]), n)]
+        # lines at 30, 60, 90, 120, 150 degrees   
+        lines = [
+            line(np.array([1, 0]), n),
+            line(np.array([0, 1]), n),
+        ]
+        
+        lines_30 = [
+            line(np.array([np.cos(np.pi/6), np.sin(np.pi/6)]), n),
+            line(np.array([np.cos(np.pi/3), np.sin(np.pi/3)]), n),
+            line(np.array([np.cos(np.pi/2), np.sin(np.pi/2)]), n),
+            line(np.array([np.cos(2*np.pi/3), np.sin(2*np.pi/3)]), n),
+            line(np.array([np.cos(5*np.pi/6), np.sin(5*np.pi/6)]), n)
+        ]
+
+        lines_45 = [
+            line(np.array([np.cos(np.pi/4), np.sin(np.pi/4)]), n),
+            line(np.array([np.cos(3*np.pi/4), np.sin(3*np.pi/4)]), n)
+        ]
+        #lines.extend(lines_30)
+        #lines.extend(lines_45)
 
         members_connected = [m for m in truss.members if m.node1 == draw_from_node or m.node2 == draw_from_node]
         if len(members_connected) == 0:
@@ -124,6 +144,7 @@ class mouse(object):
             self.x = self.closest_node.x
             self.y = self.closest_node.y
             self.cursor_updated = True
+            self.snapped_to_node = True
             return
 
         lines = []
