@@ -23,7 +23,35 @@ class member(object):
 
         self.selected = False
 
+        self.tension = 0  # positive = tension, negative = compression
+
     def display(self, disp, colour = (0,0,0)):
         if self.selected:
             colour = (255, 0, 0)
         pygame.draw.line(disp, colour, self.node1.pos, self.node2.pos, 5)
+
+    
+    def annotate(self, surf, font_size=16):
+
+        mid = 0.5 * (self.node1.pos + self.node2.pos)
+        d = self.node2.pos - self.node1.pos
+        length = np.linalg.norm(d)
+        if length < 1e-9:
+            return
+
+        perp = np.array([-d[1], d[0]]) / length
+
+        offset = 20.0   # pixels
+        text_pos = mid + perp * offset
+
+        if self.tension >= 0:
+            colour = (255, 0, 0)  # tension = red
+        else:
+            colour = (0, 0, 255)  # compression = blue
+
+        font = pygame.font.SysFont(None, font_size)
+        text = f"{self.tension:.2f}"
+        text_surf = font.render(text, True, colour)
+        
+        text_rect = text_surf.get_rect(center=(text_pos[0], text_pos[1]))
+        surf.blit(text_surf, text_rect)

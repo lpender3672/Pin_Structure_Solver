@@ -65,7 +65,7 @@ class runtime(object):
         
         angle = np.arctan2(vec.y, vec.x)
 
-        preview_constraint = constraint(node=node, angle_radians=angle, type='fixed')
+        preview_constraint = constraint(node=node, angle_radians=angle)
         preview_constraint.display(self.disp)
 
         return preview_constraint
@@ -151,7 +151,11 @@ class runtime(object):
 
                         self.disp.fill((255, 255, 255))
                         self.truss.display(self.disp, True, True)
-                        
+
+                    elif e.key == pygame.K_s:
+                        self.truss.solve_forces()
+                        self.truss.display(self.disp, True, True)
+
                 elif e.type == pygame.KEYUP:
                     self.truss.display(self.disp, True, False)
 

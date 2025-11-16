@@ -57,7 +57,7 @@ class force(object):
 
 
 class constraint(object):
-    def __init__(self, node, angle_radians, type = 'pinned'):
+    def __init__(self, node, angle_radians, type = 'roller'):
         self.node = node
         self.angle = angle_radians
         self.type = type  # 'fixed', 'roller', 'pinned', etc.
