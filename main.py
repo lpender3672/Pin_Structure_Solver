@@ -139,11 +139,16 @@ class runtime(object):
 
                         if self.drawing_truss and len(self.truss.nodes) > 0:
                             
-                            self.truss.display(self.disp, False)
+                            self.truss.display(self.disp, False, False)
                             cursor.snap_point(self.truss, self.draw_from_node)
                             self.draw_node_to_cursor(self.draw_from_node, cursor)
                         else:
-                            self.truss.display(self.disp, False)
+                            self.truss.display(self.disp, False, False)
+
+                        if self.show_help:
+                            self.display_lines(self.help_text)
+                        elif self.show_solver_out:
+                            self.display_lines([self.truss.solver_out])
 
                         pygame.display.flip()
 
@@ -370,7 +375,7 @@ def main():
 
     pygame.init()
 
-    app = runtime((600, 400))
+    app = runtime((1600, 800))
     app.run()
 
 if __name__ == '__main__':
