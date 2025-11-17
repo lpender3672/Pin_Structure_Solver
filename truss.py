@@ -46,6 +46,24 @@ class truss(object): # made from nodes and members
 
         return mber
 
+    def add_force(self, frce, nd):
+        if not isinstance(frce, force):
+            return None
+        
+        self.annotate = False
+
+        nd.forces.append(frce)
+        return frce
+
+    def add_constraint(self, cstrnt, nd):
+        if not isinstance(cstrnt, constraint):
+            return None
+        
+        self.annotate = False
+
+        nd.constraints.append(cstrnt)
+        return cstrnt
+
     def delete_node(self, nd):
 
         for n in self.nodes:
@@ -160,6 +178,9 @@ class truss(object): # made from nodes and members
 
         # each node has vertical and horizontal equilibrium equations
         # the number of unknowns depends on constraints
+        self.annotate = False
+        self.solver_out = ""
+
         unknowns = []
         for m in self.members:
             unknowns.append(m)
@@ -216,17 +237,19 @@ class truss(object): # made from nodes and members
         x, residuals, rank, s = np.linalg.lstsq(A, b, rcond=None)
 
         if rank < num_equations:
-            print("Geometrically unstable / mechanism (equilibrium equations dependent).")
-            return
+            self.solver_out = "Geometrically unstable / mechanism (equilibrium equations dependent)."
+            return False
 
         if num_unknowns > num_equations and rank == num_equations:
-            print("Statically indeterminate: more unknowns than independent equations.")
-            return
+            self.solver_out = "Statically indeterminate: more unknowns than independent equations."
+            return False
 
         if np.any(residuals > 1e-5):
-            print("Warning: Significant residuals detected, solution may be inaccurate.")
-            return
+            self.solver_out = "Warning: Significant residuals detected, solution may be inaccurate."
+            return False
         
+        self.solver_out = "Solver converged successfully."
+
         for u, col_index in unknown_indices.items():
             if u in self.members:
                 m = u
@@ -238,6 +261,8 @@ class truss(object): # made from nodes and members
 
         # we can now annotate the members with their forces
         self.annotate = True
+        # as we annotate if successful then this is returning is successful
+        return self.annotate
 
 
     def solve_displacements(self):

@@ -8,18 +8,32 @@ from node import node, force, constraint
 
 class runtime(object):
 
+    help_text = [
+        "H: Show help",
+        "SPACE: Toggle drawing mode",
+        "SHIFT (while drawing): Constrain to straight lines",
+        "F: Enter force drawing mode",
+        "C: Enter constraint drawing mode",
+        "CTRL: Enter selection mode",
+        "A (while in selection mode): Select all",
+        "DELETE / BACKSPACE: Delete selected entities",
+        "S: Solve truss"
+    ]
+
     def __init__(self, res):
 
         self.disp = pygame.display.set_mode(res)
         
 
         self.crashed = False
-
         self.straight = False
 
         self.drawing_truss = False
         self.drawing_forces = False
         self.drawing_constraints = False
+        
+        self.show_help = True
+        self.show_solver_out = False
 
         self.selection_mode = False
         self.selections = []
@@ -89,12 +103,21 @@ class runtime(object):
                     break
     
                 elif e.type == pygame.KEYDOWN:
+                    self.show_solver_out = False
 
                     if e.key == pygame.K_ESCAPE:
                         self.crashed = True
                         break
 
-                    if e.key == pygame.K_LSHIFT and self.drawing_truss:
+                    elif e.key == pygame.K_h:
+                        self.show_help = True
+                        self.disp.fill((155, 155, 155))
+                        self.truss.display(self.disp, True, False)
+                        self.display_lines(self.help_text)
+                        pygame.display.flip()
+                        continue
+
+                    elif e.key == pygame.K_LSHIFT and self.drawing_truss:
                         self.straight = True
 
                         self.disp.fill((255, 255, 255))
@@ -153,13 +176,19 @@ class runtime(object):
                         self.truss.display(self.disp, True, True)
 
                     elif e.key == pygame.K_s:
-                        self.truss.solve_forces()
-                        self.truss.display(self.disp, True, True)
+                        self.show_solver_out = not self.truss.solve_forces()
+                        self.truss.display(self.disp, True, False)
+                        if self.show_solver_out:
+                            self.display_lines([self.truss.solver_out])
+                        pygame.display.flip()
 
                 elif e.type == pygame.KEYUP:
                     self.truss.display(self.disp, True, False)
+                    
+                    if e.key == pygame.K_h:
+                        self.show_help = False
 
-                    if e.key == pygame.K_LSHIFT:
+                    elif e.key == pygame.K_LSHIFT:
                         self.straight = False
                         #self.truss.display(self.disp)
                     
@@ -175,6 +204,11 @@ class runtime(object):
                         self.selection_mode = False
                     
                     self.drawing_truss_update(cursor)
+
+                    if self.show_help:
+                        self.display_lines(self.help_text)
+                    elif self.show_solver_out:
+                        self.display_lines([self.truss.solver_out])
                     pygame.display.flip()
 
                 elif e.type == pygame.MOUSEMOTION:
@@ -206,9 +240,9 @@ class runtime(object):
 
     def handle_mouse_motion(self, cursor):
         cursor.update()
+        
         # draw line from previous node to mouse position
         self.disp.fill((255, 255, 255))
-
         self.drawing_truss_update(cursor)
 
         if self.drawing_truss and len(self.truss.nodes) > 0:
@@ -243,10 +277,17 @@ class runtime(object):
 
         else:
             self.truss.display(self.disp, False, False)
+
+        if self.show_help:
+            self.display_lines(self.help_text)
+        if self.show_solver_out:
+            self.display_lines([self.truss.solver_out])
             
         pygame.display.update()
 
     def handle_left_click(self, e, cursor):
+
+        update = False
 
         if self.drawing_truss and not self.selection_mode: # left click
             
@@ -260,7 +301,6 @@ class runtime(object):
             if len(self.truss.nodes) > 1:
 
                 mem = member(self.draw_from_node, new_node, 1)
-                print(self.draw_from_node, new_node)
 
                 self.truss.add_member(mem)
 
@@ -270,9 +310,7 @@ class runtime(object):
                         s.selected = False
                         self.selections.remove(s)
 
-                self.truss.re_draw()
-                self.truss.display(self.disp, True, True)
-
+                update = True
                 self.draw_from_node = new_node
 
         elif self.drawing_forces:
@@ -281,9 +319,8 @@ class runtime(object):
             fc = self.draw_force_from_cursor(closest_node, cursor)
             if fc is None:
                 return
-            closest_node.forces.append(fc)
-            self.truss.re_draw()
-            self.truss.display(self.disp, True, True)
+            self.truss.add_force(fc, closest_node)
+            update = True
 
         elif self.drawing_constraints:
             closest_node = cursor.get_nearest_node(self.truss)
@@ -291,9 +328,8 @@ class runtime(object):
             con = self.draw_constraint_from_cursor(closest_node, cursor)
             if con is None:
                 return
-            closest_node.constraints.append(con)
-            self.truss.re_draw()
-            self.truss.display(self.disp, True, True)
+            self.truss.add_constraint(con, closest_node)
+            update = True
 
         elif self.selection_mode:
             # if hovering over something
@@ -310,13 +346,31 @@ class runtime(object):
                     if isinstance(entity, node):
                         self.draw_from_node = entity
                     
-                self.truss.display(self.disp, True, True)
+                update = True
+
+        if update:
+            self.truss.display(self.disp, True, False)
+            if self.show_help:
+                self.display_lines(self.help_text)
+            elif self.show_solver_out:
+                self.display_lines([self.truss.solver_out])
+            pygame.display.flip()
+
+
+    def display_lines(self, lines):
+        font = pygame.font.SysFont("Arial", 20)
+        y = 20
+        for line in lines:
+            text_surface = font.render(line, True, (0, 0, 0))
+            self.disp.blit(text_surface, (20, y))
+            y += 30
+
 
 def main():
 
     pygame.init()
 
-    app = runtime((2000, 1000))
+    app = runtime((600, 400))
     app.run()
 
 if __name__ == '__main__':

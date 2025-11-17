@@ -193,8 +193,6 @@ class mouse(object):
         drawn_line_to_node_dists = [drawn_line.distance_to_point(n.pos) for n in nodes_not_connected]
         sorted_ndists_idx = np.argsort(drawn_line_to_node_dists)
 
-        #print(dists)
-
         # if two lines are very close set cursor to their intersection
         if ((mouse_to_line_dists[sorted_ldists_idx[0]] < 20) and 
             (mouse_to_line_dists[sorted_ldists_idx[1]] < 20)):
