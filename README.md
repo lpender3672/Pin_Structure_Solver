@@ -11,7 +11,20 @@ Install dependencies with Poetry:
 ```bash
 poetry install
 poetry run python main.py
+poetry run pytest
 ```
+
+# Layout
+
+`core/` is the solver and the model. It has no rendering dependency and is
+meant to stay that way, so it can be tested headless and ported later.
+
+* `core/geometry.py` - 2d vector and line helpers
+* `core/model.py` - nodes, members, forces, constraints, truss
+* `core/solver.py` - equilibrium assembly and the force solve
+
+`ui/` is the pygame front end: rendering, cursor snapping and the event loop.
+`tests/` covers the core against hand calculated trusses.
 
 # Future work
 * deflection solving and displaying
